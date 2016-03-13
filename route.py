@@ -9,9 +9,9 @@ import numpy as np
 
 from flask import Flask, render_template
 
-from bokeh.plotting import figure, show, gridplot, output_file
+from bokeh.plotting import figure, show, gridplot
 from bokeh.models import ColumnDataSource, CustomJS, VBoxForm, HBox
-from bokeh.models.widgets import Slider
+from bokeh.models.tools import BoxSelectTool
 #from bokeh.io import vform
 from bokeh.embed import components
 
@@ -23,16 +23,34 @@ y = 100*np.random.rand(N)
 source = ColumnDataSource(data=dict(x=x,y=y))
 
 #Interaction tools
-TOOLS = 'box_select, crosshair, help, reset, resize'
+TOOLS = 'crosshair, help, reset, resize'
 
 # Figure plotting function
 def make_figure():
-    #set up plot
+    #Create scatter plot of data
+    #set up figure
     scat_plot = figure(plot_height=400, plot_width=800, title="Scatter plot",
-                  tools=TOOLS, x_axis_label ='x', y_axis_label = 'y')
-
+                  tools=TOOLS, x_axis_label = "x", y_axis_label = "y",
+                  toolbar_location= "left")
+                  
+    #modify the BoxSelectTool to only select on the x-axis
+    scat_plot.add_tools(BoxSelectTool(dimensions=["width"]))
+    
+    #add data to scatter plot
     scat_plot.scatter('x','y', source=source,size=5)
-           
+    
+    #Create marginal histogram for y-axis data density
+    #set up figure
+#    hist_plot = figure(plot_height=400, plot_width=200, tools="")
+    #get histogram data 
+#    hist, edges = np.histogram(y, density=True, bins=10)
+    #add create and add data for histograme
+#    hist_plot.quad(top=edges[1:], bottom=edges[:-1], left=0, right=hist,
+#                   fill_color="#036564", line_color="#033649")
+    
+    #add mean line to histogram data (smooth)
+    #(....)
+    
     show(scat_plot)
     return scat_plot #need to return the layout
         
