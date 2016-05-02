@@ -1,15 +1,18 @@
-<!<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
   <head>
     <title>CSC_411</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">;
-	<link rel="stylesheet" href="https://cdn.pydata.org/bokeh/release/bokeh-0.11.0.min.css" type="text/css" />
-	<link rel="stylesheet" href="https://cdn.pydata.org/bokeh/release/bokeh-widgets-0.11.0.min.css" type="text/css" />
-        
-	<script type="text/javascript" src="https://cdn.pydata.org/bokeh/release/bokeh-0.11.0.min.js"></script>
-	<script type="text/javascript" src="https://cdn.pydata.org/bokeh/release/bokeh-widgets-0.11.0.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  	
+    <link rel="stylesheet" href="https://cdn.pydata.org/bokeh/release/bokeh-0.11.0.min.css" type="text/css" />
+  	<link rel="stylesheet" href="https://cdn.pydata.org/bokeh/release/bokeh-widgets-0.11.0.min.css" type="text/css" />
+          
+  	<script type="text/javascript" src="https://cdn.pydata.org/bokeh/release/bokeh-0.11.0.min.js"></script>
+  	<script type="text/javascript" src="https://cdn.pydata.org/bokeh/release/bokeh-widgets-0.11.0.min.js"></script>
 
-
+    <script type="text/javascript" src="{{ url_for('static', filename='js/hist_update.js')}}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/scat_update.js')}}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/d3.js')}}"></script>
   </head>
   <body>
     

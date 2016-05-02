@@ -6,7 +6,7 @@ from scipy.stats import gaussian_kde as gkde
 from flask import render_template, Flask, request
 
 from bokeh.plotting import figure, gridplot
-from bokeh.models import ColumnDataSource, Range1d, LinearAxis
+from bokeh.models import ColumnDataSource, Range1d, LinearAxis, CustomJS
 from bokeh.models.tools import BoxSelectTool
 from bokeh.embed import components #autoload_server
 #from bokeh.client import push_session, show_session
@@ -18,9 +18,11 @@ from pandas import read_csv
 from werkzeug.utils import secure_filename
 import os
 
-
+#Constants
 ALLOWED_EXTENSIONS = set(['csv']) 
-
+APP_ROOT = os.path.dirname(os.path.abspath(__file__))
+UPLOAD_FOLDER = "".join([APP_ROOT, "/uploads"])  
+    
 def allowed_file(filename):
         return '.' in filename and \
            filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
@@ -33,11 +35,7 @@ def home():
     return render_template("home.html")
     
 @app.route('/upload', methods=['GET','POST'])
-def upload():
-    #CONSTANTS
-    APP_ROOT = os.path.dirname(os.path.abspath(__file__))
-    UPLOAD_FOLDER = "".join([APP_ROOT, "/uploads"])    
-    print(UPLOAD_FOLDER)
+def upload():      
     if not os.path.isdir(UPLOAD_FOLDER):
         os.mkdir(UPLOAD_FOLDER) #make upload folder if folder does not exist
     
@@ -87,13 +85,13 @@ def plot():
                                                   
         #add data to scatter plot (data points on time plot)
         time_scat = time_plot.scatter("x", "y", source = source,size = 1, color = "green")
-        time_scat2 = time_plot.scatter("x", "y", source = source2,size= 1, color = "red", y_range_name = "foo")
+        time_scat2 = time_plot.scatter("x", "y", source = source2,size= 1, color = "blue", y_range_name = "foo")
            
         #add time series line
-        time_line = time_plot.line("x","y",source=source,color = time_scat.glyph.fill_color,
+        time_plot.line("x","y",source=source,color = time_scat.glyph.fill_color,
                                    alpha=0.5)
                                    
-        time_line2 = time_plot.line("x","y",source=source2,color="red",
+        time_plot.line("x","y",source=source2,color= time_scat2.glyph.fill_color,
                                     alpha=0.5,y_range_name="foo")   
         
         #First axes styling
@@ -114,13 +112,13 @@ def plot():
                 
         #Create marginal histogram for y-axis data density
         #set up figure
+                #static total selection displayed as outline
         hist_plot = figure(plot_height = 400, plot_width = 200, y_range = time_plot.y_range)
         
         #Customize hist_plot grid lines
         hist_plot.xgrid.grid_line_alpha = 0.2
         hist_plot.ygrid.grid_line_alpha = 0.5
-        
-        
+                
         #get histogram data 
         hist, edges = histogram(source.data["y"], density = True, bins = 20)
         
@@ -130,10 +128,10 @@ def plot():
         #styleing histograms axises              
         hist_plot.xaxis.axis_label = ""
         hist_plot.yaxis.axis_label = ""
-        hist_plot.xaxis.visible = None
+#        hist_plot.xaxis.visible = None
                     
         #add gaussian kernel density estomator
-        y_span = np.linspace(min(source.data["y"]),
+        y_span = linspace(min(source.data["y"]),
                              max(source.data["y"]), size(source.data["y"]))
         kde = gkde(source.data["y"]).evaluate(y_span)
         
@@ -141,54 +139,70 @@ def plot():
         hist_plot.line(kde, y_span, line_color = "#ff6666", line_width = 1, alpha = 0.5)
             
         #Create updateable plots
-        u_hist = hist_plot.quad(top = edges[1:], bottom = edges[:-1], left = 0,
-                                right = zeros_like(edges),
+        u_hist_source = ColumnDataSource(data=dict(x=[],y=[]))
+        
+        hist_plot.quad(top = edges[1:], bottom = edges[:-1], left = 0,
+                                right = u_hist_source.data['y'],#need to be updated on selection
                                 fill_color = time_scat.glyph.fill_color, alpha = 0.5)
+       
+        source.callback = CustomJS(args=dict(su=u_hist_source), code="""
+                        UpdateHistogram(cb_obj,su)
+                        """)
+        
+        
                            
         kde_data = zeros((len(kde)))
         kde_line = hist_plot.line(kde_data, y_span, line_color = "red")
         
         #create scatter plot from of data sets
+        scat_data = ColumnDataSource(data=dict(x=[0],y=[0]))
         scat_plot = figure(plot_height = 400, plot_width = 400, title = "", x_axis_label = '', 
                     y_axis_label = '')
                    
-        u_scat_points = scat_plot.scatter(x = zeros_like(source.data["y"]),
-                                          y = zeros_like(source.data["y"]),size=2)
-                           
+        scat_plot.scatter('x', 'y', source=scat_data,size=2)
+        source.callback =  CustomJS(args=dict(sc=scat_data,source2=source2), code="""
+                        UpdateScatterplot(cb_obj,sc,source2)
+                        """)
         #create plot layout
         layout = gridplot([[time_plot, hist_plot], [scat_plot, None]])
 #        curdoc().add_root(layout)
         
-        #add updateing histogram construction
-        def update(attr, old, new):    
-            inds = array(new["1d"]["indices"])  #error when crosshair is added
-            
-            #for zero selected or all selected 
-            if len(inds) == 0:
-                hist1 = zeros_like(edges)
-                u_scat_data = array([zeros_like(source.data["y"]),
-                                        zeros_like(source.data["y"])])
-            #update hist values on selection
-            else:
-                hist1, _ = histogram(source.data["y"][inds], bins=edges, density = True)
-                u_scat_data = array([source.data["y"][inds], source2.data["y"][inds]])
-                
-            if len(inds) > 2:
-                kde_span = linspace(min(source.data["y"][inds]),
-                                       max(source.data["y"][inds]),
-                                       size(source.data["y"][inds]))
-                kde_data = gkde(source.data["y"][inds]).evaluate(kde_span)
-            else:
-                kde_data = zeros(2)
-                kde_span = zeros(2)
-            #update ploting data sources    
-            u_hist.data_source.data['right'] = hist1
-            kde_line.data_source.data['x'] = kde_data
-            kde_line.data_source.data['y'] = kde_span
-            u_scat_points.data_source.data['x'] = u_scat_data[0]
-            u_scat_points.data_source.data['y'] = u_scat_data[1]
-                    
-        time_scat.data_source.on_change('selected', update)
+        
+        
+        
+        
+        
+        
+#        #add updateing histogram construction
+#        def update(attr, old, new):    
+#            inds = array(new["1d"]["indices"])  #error when crosshair is added
+#            
+#            #for zero selected or all selected 
+#            if len(inds) == 0:
+#                hist1 = zeros_like(edges)
+#                u_scat_data = array([zeros_like(source.data["y"]),
+#                                        zeros_like(source.data["y"])])
+#            #update hist values on selection
+#            else:
+#                hist1, _ = histogram(source.data["y"][inds], bins=edges, density = True)
+#                u_scat_data = array([source.data["y"][inds], source2.data["y"][inds]])
+#                
+#            if len(inds) > 2:
+#                kde_span = linspace(min(source.data["y"][inds]),
+#                                       max(source.data["y"][inds]),
+#                                       size(source.data["y"][inds]))
+#                kde_data = gkde(source.data["y"][inds]).evaluate(kde_span)
+#            else:
+#                kde_data = zeros(2)
+#                kde_span = zeros(2)
+#            #update ploting data sources    
+#            u_hist.data_source.data['right'] = hist1
+#            kde_line.data_source.data['x'] = kde_data
+#            kde_line.data_source.data['y'] = kde_span
+#            u_scat_points.data_source.data['x'] = u_scat_data[0]
+#            u_scat_points.data_source.data['y'] = u_scat_data[1]
+#                    
+#        time_scat.data_source.on_change('selected', update)
         
 #        push_session(curdoc())
         
