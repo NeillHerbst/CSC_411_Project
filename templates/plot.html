@@ -1,54 +1,7 @@
 {% extends "layout.html" %}
   
 {% block content %} 
-	<div class="container" >
-		<div class="row">
-			<div class="col-sm-2">
-				<div class="dropdown">
-					<button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">Data_1_name
-					  <span class="caret"></span></button>
-					  <ul class="dropdown-menu">
-					    <li><a href="#">HTML</a></li>
-					    <li><a href="#">CSS</a></li>
-					    <li><a href="#">JavaScript</a></li>
-					  </ul>
-				</div>
-			</div>
 
-			<div class="col-sm-2">
-				<div class="dropdown">
-					<button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">Data_2_name
-					  <span class="caret"></span></button>
-					  <ul class="dropdown-menu">
-					    <li><a href="#">HTML</a></li>
-					    <li><a href="#">CSS</a></li>
-					    <li><a href="#">JavaScript</a></li>
-					  </ul>
-				</div>
-			</div>
-
-			<div class="col-sm-4">
-			</div>
-
-			<div class="col-sm-4">
-				<div>
-				</div>
-
-				<div class="dropdown">
-					<button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">Data_3_name
-					  <span class="caret"></span>
-					</button>
-					  <ul class="dropdown-menu">
-					    <li><a href="#">HTML</a></li>
-					    <li><a href="#">CSS</a></li>
-					    <li><a href="#">JavaScript</a></li>
-					  </ul>
-				</div>			
-			</div>
-		</div>
-	</div>
-
-	<div class="container" >
 		<div class="row">
 			<div class="col-sm-12">
 		    	{{ script|safe }}
@@ -56,5 +9,4 @@
 		    	{{ div|safe }}
     		</div>
     	</div>
-    </div>
 {% endblock %}
