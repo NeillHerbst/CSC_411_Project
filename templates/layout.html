@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>CSC_411</title>
+    <title>Evert</title>
   	<link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-css/bootstrap.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+	
     <link rel="stylesheet" href="https://cdn.pydata.org/bokeh/release/bokeh-0.11.0.min.css" type="text/css" />
   	<link rel="stylesheet" href="https://cdn.pydata.org/bokeh/release/bokeh-widgets-0.11.0.min.css" type="text/css" />
           
@@ -23,15 +24,23 @@
       <nav class="navbar navbar-default">
         <div class="container-fluid">
           <div class="navbar-header">
-            <a class="navbar-brand" href="{{ url_for('home') }}">Evert</a>
+            <a class="navbar-brand" href="{{ url_for('upload') }}">Evert</a>
           </div>
           <ul class="nav navbar-nav navbar-right">
-            <li><a href="{{ url_for('home') }}">Home</a></li>
-            <li><a href="{{ url_for('plot') }}">Plot</a></li> 
+            <li><a href="{{ url_for('plot') }}">Time Series</a></li> 
             <li><a href="{{ url_for('upload') }}">Upload</a></li>
           </ul>
         </div>
       </nav>
+	  
+	<div class="container">
+		{% for message in get_flashed_messages() %}
+		<div class="alert alert-warning">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        {{ message }}
+		</div>
+		{% endfor %}
+    </div>   
      
     <div class="container">
       {% block content %}
