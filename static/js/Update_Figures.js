@@ -32,7 +32,7 @@ function Update_ALL_Figures(cb_obj, hist_data, hist_data2, kde_d, kde_d2, scat) 
 		kde_data2 = kde_d2.get('data'),
         /*Scatter plot data*/
         ds_data = scat.get('data');
-
+    console.log(d1['x'].length)
 
     d2['x'] = [];
     d2['y'] = [];
@@ -98,8 +98,6 @@ function Update_ALL_Figures(cb_obj, hist_data, hist_data2, kde_d, kde_d2, scat) 
         data['right'].push((histogram[i].y)/(histogram[i].dx));
 		data2['right'].push((histogram2[i].y)/(histogram2[i].dx));		
     };
-    
-    
 
     /*Update scatter plot*/  
     for (i = 0; i < inds.length; i++) {
@@ -109,11 +107,11 @@ function Update_ALL_Figures(cb_obj, hist_data, hist_data2, kde_d, kde_d2, scat) 
 
     /*kernel density estimator*/
     if (inds.length > 2) {
-    var h = 2*std(d2['y'])*Math.pow(d2['y'].length,1/5), //damping factor
+    var h = 1000/d2['y'].length*std(d2['y'])*Math.pow(d2['y'].length,1/5),
         kde = science.stats.kde().sample(d2['y']),
         kde_bandwidth_set = d3.values(science.stats.bandwidth),
         kde_line = kde.bandwidth(h)(d3.range(Math.min(...d2['y']), Math.max(...d2['y']), 0.0001)),
-		h2  = 2*std(dd['y'])*Math.pow(d2['y'].length,1/5),
+		h2  = 1000/dd['y'].length*std(dd['y'])*Math.pow(d2['y'].length,1/5),
         kde2 = science.stats.kde().sample(dd['y']),
         kde_bandwidth_set2 = d3.values(science.stats.bandwidth),
         kde_line2 = kde2.bandwidth(h2)(d3.range(Math.min(...dd['y']), Math.max(...dd['y']), 0.0001));
